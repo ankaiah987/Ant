@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="AntProject" basedir="." default="test1">
+
+	<property name="src.dir" value="src" />
+	<property name="build.dir" value="build/classes" />
+	<property name="WebContent.dir" value="WebContent" />
+	<property name="lib.dir" value="${WebContent.dir}/WEB-INF/lib" />
+	<property name="dest.dir" value="dest" />
+	<property name="reports.dir" value="reports" />
+	<property name="htmlreports.dir" value="htmlreports" />
+	<echo message="welcome to" />
+	<path id="master">
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	<target name="clean" description="cleaning directories">
+		<delete>
+			<fileset dir="${build.dir}">
+				<include name="**/*.class" />
+				<exclude name="**/*Test.class" />
+			</fileset>
+		</delete>
+
+		<!--  <delete>
+		<fileset dir="${dest.dir}">
+			<include name="*.jar" />
+			<include name="*.war" />
+		</fileset>
+	</delete> -->
+		<delete dir="${dest.dir}" />
+		<delete dir="${reports.dir}" />
+		<delete dir="${htmlreports.dir}" />
+
+		<echo message="clean is done" />
+	</target>
+
+	<target name="prepare" depends="clean" description="making directories">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${dest.dir}" />
+		<mkdir dir="${reports.dir}" />
+		<mkdir dir="${htmlreports.dir}" />
+
+		<echo message="making directory is done" />
+	</target>
+
+	<target name="compile" depends="prepare" description="compile java  classes">
+		<javac includeantruntime="false" srcdir="${src.dir}" destdir="${build.dir}">
+			<classpath refid="master" />
+		</javac>
+
+		<echo message="compilation is done" />
+	</target>
+
+	<target name="jar" depends="clean" description="Creating jar file">
+		<jar destfile="${dest.dir}/${ant.project.name}.jar" basedir="${build.dir}">
+			<include name="**/*.class" />
+			<exclude name="**/*Test.class" />
+			<manifest>
+				<attribute name="Main-class" value="come.*" />
+			</manifest>
+		</jar>
+		<echo message="Jar is created" />
+	</target>
+
+	<target name="war" depends="jar">
+		<war destfile="${dest.dir}/${ant.project.name}.war" webxml="${WebContent.dir}/WEB-INF/web.xml">
+			<fileset dir="${WebContent.dir}">
+				<include name="**/*.jsp" />
+				<include name="**/*.html" />
+				<include name="**/*.css" />
+				<include name="**/*.js" />
+				<include name="**/*.png" />
+				<include name="**/*.gif" />
+			</fileset>
+			<lib dir="${lib.dir}">
+				<include name="*.jar" />
+			</lib>
+
+			<classes dir="${build.dir}" />
+
+			<manifest>
+				<attribute name="Main-class" value="come.*" />
+			</manifest>
+
+		</war>
+
+		<echo message="war is created" />
+
+	</target>
+
+	<target name="run-test" depends="compile,jar,war" description="run junit test class">
+		<junit printsummary="yes" haltonfailure="no" showoutput="yes">
+			<!-- <classpath refid="master" /> -->
+
+			<classpath>
+				<pathelement path="${build.dir}"/>
+				<fileset dir="${lib.dir}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+
+			<batchtest fork="yes" todir="${reports.dir}">
+				<formatter type="xml" />
+				<fileset dir="${src.dir}">
+					<include name="**/*Test*.java" />
+				</fileset>
+
+			</batchtest>
+
+		</junit>
+
+
+
+		<echo message="run-test is done" />
+
+	</target>
+
+	<target name="test1" depends="run-test" description="">
+		<junitreport todir="${reports.dir}">
+			<fileset dir="${reports.dir}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="noframes" todir="${htmlreports.dir}\html\" />
+		</junitreport>
+		<echo message="test is don" />
+	</target>
+
+</project>
